@@ -5,49 +5,51 @@ import routes from './routes/index.js';
 
 dotenv.config();
 
-// Koneksi ke MongoDB
-try {
-  await connectDB();
-  console.log('✅ MongoDB connected successfully');
-} catch (error) {
-  console.error('❌ MongoDB connection failed:', error.message);
-  process.exit(1);
-}
+const startServer = async () => {
+  try {
+    // ✅ Koneksi MongoDB
+    await connectDB();
+    console.log('✅ MongoDB connected successfully');
 
-const init = async () => {
-  const server = Hapi.server({
-    port: process.env.PORT || 3000,
-    host: '0.0.0.0', // 🔥 Penting agar bisa diakses oleh Render
-    routes: {
-      cors: {
-        origin: ['*'], // Batasi untuk domain tertentu saat production
-        headers: ['Accept', 'Content-Type'],
-        credentials: true,
+    // ✅ Setup Server
+    const server = Hapi.server({
+      port: process.env.PORT || 3000,
+      host: '0.0.0.0', // ✅ WAJIB untuk Railway/Render
+      routes: {
+        cors: {
+          origin: ['*'],
+          headers: ['Accept', 'Content-Type'],
+          credentials: true,
+        }
       }
-    }
-  });
+    });
 
-  // 🔍 Root endpoint untuk test server hidup
-  server.route({
-    method: 'GET',
-    path: '/',
-    handler: () => ({
-      message: 'HydroSmart API is running 🚀'
-    })
-  });
+    // ✅ Endpoint test
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: () => ({
+        message: 'HydroSmart API is running 🚀',
+      }),
+    });
 
-  // ⛓️ Daftarkan semua routes modular
-  server.route(routes);
+    // ✅ Semua routes modular
+    server.route(routes);
 
-  await server.start();
-  console.log(`✅ Server running on ${server.info.uri}`);
-  console.log(`🌱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    await server.start();
+    console.log(`✅ Server running on ${server.info.uri}`);
+    console.log(`🌱 Environment: ${process.env.NODE_ENV || 'development'}`);
+  } catch (err) {
+    console.error('❌ Startup error:', err);
+    process.exit(1);
+  }
 };
 
-// Global error handler
+// Global error handling
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err);
   process.exit(1);
 });
 
-init();
+// ⛳ Jalankan langsung
+startServer();
